@@ -1,18 +1,23 @@
 package org.techtown.videorecord;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Service;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.Intent;
 import android.database.Cursor;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.IBinder;
 import android.os.storage.StorageManager;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -47,10 +52,14 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private SurfaceHolder surfaceHolder;
     private boolean recording = false;
     private String filename = null;
-
+    private String dirPath;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+
+        //startService(new Intent(this, UnCatchTask.class));
         setContentView(R.layout.activity_main);
 
         TedPermission.with(this)
@@ -60,7 +69,27 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 .setPermissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO )
                 .check();
 
+// 디렉토리 생성
+        String str = Environment.getExternalStorageState();
+        if ( str.equals(Environment.MEDIA_MOUNTED)) {
 
+            dirPath = "/sdcard/black_box";
+            File file = new File(dirPath);
+            if( !file.exists() )  // 원하는 경로에 폴더가 있는지 확인
+            {
+                Log.e("TAG : ", "디렉토리 생성");
+               file.mkdirs();
+        }
+            else Log.e("TAG : ", "디렉토리 이미존재");
+
+        }
+        else
+            Toast.makeText(this, "SD Card 인식 실패", Toast.LENGTH_SHORT).show();
+
+
+
+
+        //recording button
         btn_record = findViewById(R.id.btn_record);
         btn_record.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -70,9 +99,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                     mediaRecorder.release();
                     camera.lock();
                     recording  = false;
-                    btn_upload.callOnClick();
+
                     Toast.makeText(MainActivity.this, "파이어베이스에 자동업로드", Toast.LENGTH_SHORT).show();
 
+                    btn_upload.callOnClick();
                 }
                 else{
                     runOnUiThread(new Runnable() {
@@ -88,16 +118,16 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                                 mediaRecorder.setCamera(camera);
                                 mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
                                 mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-                                mediaRecorder. setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_720P));
+                                mediaRecorder. setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_480P));
                                 mediaRecorder.setOrientationHint(90);
 
-                                SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMHH_mmss");
+                                SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_HH_mmss");
                                 Date now = new Date();
                                 filename = formatter.format(now) + ".mp4";
 
 
 
-                                mediaRecorder.setOutputFile("/sdcard/" + filename);
+                                mediaRecorder.setOutputFile(dirPath +"/"+ filename);
                                 mediaRecorder.setPreviewDisplay(surfaceHolder.getSurface());
                                 mediaRecorder.prepare();
                                 mediaRecorder.start();
@@ -117,6 +147,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
 
 
+
+        // uploadbutton
         btn_upload = findViewById(R.id.btn_upload);
 
         btn_upload.setOnClickListener(new View.OnClickListener() {
@@ -128,9 +160,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
                     FirebaseStorage storage = FirebaseStorage.getInstance();
 
-                    Uri file = Uri.fromFile(new File("/sdcard/" + filename));
-                    StorageReference storageRef = storage.getReferenceFromUrl("gs://videorecording-e653f.appspot.com/").child("/sdcard/" + filename);
-
+                    Uri file = Uri.fromFile(new File(dirPath +"/"+ filename));
+                    StorageReference storageRef = storage.getReferenceFromUrl("gs://videorecording-e653f.appspot.com/").child(dirPath +"/"+ filename);
+                    //storage url 적는란
 
 
                     Log.e("URi 확인: ", String.valueOf(file));
@@ -162,6 +194,42 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
 
     }
+
+    @Override
+    protected void onStop() {  //백그라운드로 이동할때
+        super.onStop();
+        if(recording){
+            mediaRecorder.stop();
+            mediaRecorder.release();
+            camera.lock();
+            recording  = false;
+
+            Toast.makeText(MainActivity.this, "파이어베이스에 자동업로드", Toast.LENGTH_SHORT).show();
+
+            btn_upload.callOnClick();
+        }
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.e("TAG", "onDestroy 호출");
+//        if(recording){
+//            mediaRecorder.stop();
+//            mediaRecorder.release();
+//            camera.lock();
+//            recording  = false;
+//
+//            Toast.makeText(MainActivity.this, "파이어베이스에 자동업로드", Toast.LENGTH_SHORT).show();
+//
+//            btn_upload.callOnClick();
+//        }
+    }
+
+
+
+    // permission
     PermissionListener permission = new PermissionListener() {
         @Override
         public void onPermissionGranted() {
@@ -218,17 +286,34 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     }
 
-//    public static Uri getUriFromPath(ContentResolver cr, String path) {
-//        Log.e("getUriFromPath",  "start");
-//        Uri fileUri = Uri.parse(path);
-//        Cursor cursor = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-//                null, "_data = '" + filePath + "'", null, null);
-//
-//        cursor.moveToNext();
-//        int id = cursor.getInt(cursor.getColumnIndex("_id"));
-//        Uri uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
-//        Log.e("getUriFromPath",  "end");
-//        return uri;
-//    }
 
-}
+//    public class  UnCatchTaskService extends Service {
+//        @Nullable
+//        @Override
+//        public IBinder onBind(Intent intent) {
+//            return null;
+//        }
+//
+//        @Override
+//        public void onTaskRemoved(Intent rootIntent) {
+//
+//
+//            Log.e("Error","onTaskRemoved - " + rootIntent);
+//            if(recording){
+//                mediaRecorder.stop();
+//                mediaRecorder.release();
+//                camera.lock();
+//                recording  = false;
+//
+//                Toast.makeText(MainActivity.this, "파이어베이스에 자동업로드", Toast.LENGTH_SHORT).show();
+//
+//                btn_upload.callOnClick();
+//            }
+//
+//
+//            stopSelf(); //서비스도 같이 종료
+//
+//        }
+    }
+
+
