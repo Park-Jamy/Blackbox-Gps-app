@@ -16,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/btn_record"
-            android:text="녹화시작"/>
+            android:text="녹화 + 업로드"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

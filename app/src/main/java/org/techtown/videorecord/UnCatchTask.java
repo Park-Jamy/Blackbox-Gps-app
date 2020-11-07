@@ -15,9 +15,11 @@ public class  UnCatchTask extends Service {
         return null;
     }
 
-    public void onTaskRemoved(UnCatchTask unCatchTask) {
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
         Log.e("Error","onTaskRemoved - 강제 종료 ");
         Toast.makeText(this, "onTaskRemoved ", Toast.LENGTH_SHORT).show();
+        stopSelf();
     }
 }
 
