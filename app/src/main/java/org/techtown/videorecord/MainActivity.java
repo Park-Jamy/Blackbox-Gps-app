@@ -1,5 +1,6 @@
 package org.techtown.videorecord;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
@@ -8,9 +9,13 @@ import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.Camera;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.LocationManager;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 
@@ -44,9 +49,12 @@ import com.gun0912.tedpermission.TedPermission;
 import com.amazonaws.auth.AWSCredentialsProvider;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback, View.OnClickListener {
@@ -66,7 +74,12 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private String TAG = "TAG";
     private Button btn_send;
     private EditText textPhoneNo;
-    private SmsManager mSMSManager;
+    private String phoneNum = null;
+
+    private GpsTracker gpsTracker;
+
+    private static final int GPS_ENABLE_REQUEST_CODE = 2001;
+    private static final int PERMISSIONS_REQUEST_CODE = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 .setPermissionListener(permission)
                 .setRationaleMessage("녹화를 위하여 권한을 허용해주세요.")
                 .setDeniedMessage("권한이 거부되었습니다.")
-                .setPermissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO, Manifest.permission.SEND_SMS )
+                .setPermissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO, Manifest.permission.SEND_SMS, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION )
                 .check();
     }
 
@@ -144,6 +157,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             Toast.makeText(MainActivity.this, "aws에 업로드중 기다려주세요", Toast.LENGTH_SHORT).show();
 
             btn_upload.callOnClick();
+            btn_send.callOnClick();
         }
 
     }
@@ -229,6 +243,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
             case R.id.btn_record:
                 if(recording){
+
                     mediaRecorder.stop();
                     mediaRecorder.release();
                     camera.lock();
@@ -237,11 +252,18 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                     Toast.makeText(MainActivity.this, "aws에 업로드중 기다려주세요", Toast.LENGTH_SHORT).show();
 
                     btn_upload.callOnClick();
+                    btn_send.callOnClick();
+
+
+
                 }
                 else{
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+
+                            if(textPhoneNo.length() == 11){
+                                phoneNum = textPhoneNo.getText().toString();
                             //과부화도 덜되고 동영상 처리는 여기서 하는게 좋다
                             Toast.makeText(MainActivity.this, "녹화가 시작되었습니다.", Toast.LENGTH_SHORT).show();
                             try {
@@ -271,6 +293,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                             }catch (Exception e){
                                 e.printStackTrace();
                                 mediaRecorder.release();
+                            }}
+                            else{
+                                Toast.makeText(MainActivity.this, "전화번호를 입력해주세요", Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
@@ -311,12 +336,14 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
 
             case R.id.btn_send:
-                String phoneNum = textPhoneNo.getText().toString();
-                if(phoneNum.length() > 5) {
-                    sendSms(phoneNum, "안녕하세요");
+                gpsTracker = new GpsTracker(this);
+                double latitude = gpsTracker.getLatitude();
+                double longtitude = gpsTracker.getLongitude();
+                String address = getCurrentAddress(latitude, longtitude);
+                String location = "\n위도: " + latitude + "\n경도: " + longtitude;
+                    sendSms(phoneNum, address+location);
+                    phoneNum = null;
                     Toast.makeText(this, "문자 메시지 전송", Toast.LENGTH_SHORT).show();
-                }else
-                    Toast.makeText(this, "전화번호를 바르게 입력해주세요", Toast.LENGTH_SHORT).show();
 
                 break;
         }
@@ -329,6 +356,100 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
 
     }
+
+
+    public String getCurrentAddress( double latitude, double longitude) {
+
+        //지오코더... GPS를 주소로 변환
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+
+        List<Address> addresses;
+
+        try {
+
+            addresses = geocoder.getFromLocation(
+                    latitude,
+                    longitude,
+                    7);
+        } catch (IOException ioException) {
+            //네트워크 문제
+            Toast.makeText(this, "지오코더 서비스 사용불가", Toast.LENGTH_LONG).show();
+            return "지오코더 서비스 사용불가";
+        } catch (IllegalArgumentException illegalArgumentException) {
+            Toast.makeText(this, "잘못된 GPS 좌표", Toast.LENGTH_LONG).show();
+            return "잘못된 GPS 좌표";
+
+        }
+
+
+
+        if (addresses == null || addresses.size() == 0) {
+            Toast.makeText(this, "주소 미발견", Toast.LENGTH_LONG).show();
+            return "주소 미발견";
+
+        }
+
+        Address address = addresses.get(0);
+        return address.getAddressLine(0).toString()+"\n";
+
+    }
+
+
+    //여기부터는 GPS 활성화를 위한 메소드들
+    private void showDialogForLocationServiceSetting() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("위치 서비스 비활성화");
+        builder.setMessage("앱을 사용하기 위해서는 위치 서비스가 필요합니다.\n"
+                + "위치 설정을 수정하실래요?");
+        builder.setCancelable(true);
+        builder.setPositiveButton("설정", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                Intent callGPSSettingIntent
+                        = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivityForResult(callGPSSettingIntent, GPS_ENABLE_REQUEST_CODE);
+            }
+        });
+        builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.cancel();
+            }
+        });
+        builder.create().show();
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+
+            case GPS_ENABLE_REQUEST_CODE:
+                //사용자가 GPS 활성 시켰는지 검사
+                if (checkLocationServicesStatus()) {
+                    if (checkLocationServicesStatus()) {
+
+                        Log.d("@@@", "onActivityResult : GPS 활성화 되있음");
+//                        checkRunTimePermission();
+                        return;
+                    }
+                }
+
+                break;
+        }
+    }
+
+    public boolean checkLocationServicesStatus() {
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
+
+
 
 
 //    public class  UnCatchTaskService extends Service {
@@ -359,5 +480,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 //
 //        }
     }
+
+
 
 
