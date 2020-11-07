@@ -61,7 +61,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
 
         //startService(new Intent(this, UnCatchTask.class));
-
         setContentView(R.layout.activity_main);
         allowPermission();  //Ted permission으로 권한 얻어오기
         makeDir();
