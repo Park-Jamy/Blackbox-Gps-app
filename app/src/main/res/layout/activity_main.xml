@@ -21,7 +21,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/btn_upload"
+            android:visibility="gone"
             android:text="파일 업로드"/>
+        <EditText
+            android:layout_width="170dp"
+            android:layout_height="wrap_content"
+            android:hint="전화번호 입력"
+            android:inputType="phone"
+            android:id="@+id/edit_text_phone"
+            />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="전송"
+            android:id="@+id/btn_send"/>
+
 
     </LinearLayout>
     <SurfaceView

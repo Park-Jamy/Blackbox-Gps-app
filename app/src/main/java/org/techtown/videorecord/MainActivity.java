@@ -4,6 +4,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
 
+import android.app.Activity;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
@@ -11,12 +17,15 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
 
+import android.telephony.SmsManager;
 import android.util.Log;
 
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextClock;
 import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
@@ -29,6 +38,7 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.DeleteVersionRequest;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -54,6 +64,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private String filename = null;
     private String dirPath;
     private String TAG = "TAG";
+    private Button btn_send;
+    private EditText textPhoneNo;
+    private SmsManager mSMSManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,9 +94,11 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
         btn_record = findViewById(R.id.btn_record);
         btn_upload = findViewById(R.id.btn_upload);
+        btn_send = findViewById(R.id.btn_send);
         btn_record.setOnClickListener(this);
         btn_upload.setOnClickListener(this);
-
+        btn_send.setOnClickListener(this);
+        textPhoneNo = findViewById(R.id.edit_text_phone);
 
 
 
@@ -112,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 .setPermissionListener(permission)
                 .setRationaleMessage("녹화를 위하여 권한을 허용해주세요.")
                 .setDeniedMessage("권한이 거부되었습니다.")
-                .setPermissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO )
+                .setPermissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO, Manifest.permission.SEND_SMS )
                 .check();
     }
 
@@ -292,9 +308,27 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                     Toast.makeText(MainActivity.this, "파일 없음", Toast.LENGTH_SHORT).show();
                 }
                 break;
+
+
+            case R.id.btn_send:
+                String phoneNum = textPhoneNo.getText().toString();
+                if(phoneNum.length() > 5) {
+                    sendSms(phoneNum, "안녕하세요");
+                    Toast.makeText(this, "문자 메시지 전송", Toast.LENGTH_SHORT).show();
+                }else
+                    Toast.makeText(this, "전화번호를 바르게 입력해주세요", Toast.LENGTH_SHORT).show();
+
+                break;
         }
 
   }
+
+    private void sendSms(String phoneNum, String msg) {
+        SmsManager sms = SmsManager.getDefault();
+        sms.sendTextMessage(phoneNum, null, msg, null, null);
+
+
+    }
 
 
 //    public class  UnCatchTaskService extends Service {
