@@ -13,6 +13,14 @@ buildscript {
     }
 }
 
+//추가 -- 카카오
+subprojects {
+    repositories {
+        mavenCentral()
+        maven { url 'http://devrepo.kakao.com:8088/nexus/content/groups/public/' }
+    }
+}
+
 allprojects {
     repositories {
         google()
