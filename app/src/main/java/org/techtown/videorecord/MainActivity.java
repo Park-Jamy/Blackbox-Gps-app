@@ -1,53 +1,35 @@
 package org.techtown.videorecord;
-
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
-
-import android.app.Activity;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.hardware.Camera;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.LocationManager;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
-
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-
 import android.telephony.SmsManager;
 import android.util.Log;
-
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextClock;
 import android.widget.Toast;
-
-import com.amazonaws.auth.CognitoCachingCredentialsProvider;
-
-import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
-import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
-import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
-import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.DeleteVersionRequest;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
-import com.amazonaws.auth.AWSCredentialsProvider;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -61,8 +43,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
 
     private AmazonS3 s3;
-    private TransferUtility transferUtility;
-    private File f;
     private Camera camera;
     private MediaRecorder mediaRecorder;
     private Button btn_record, btn_upload;
@@ -79,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private GpsTracker gpsTracker;
 
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
-    private static final int PERMISSIONS_REQUEST_CODE = 100;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,17 +72,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         allowPermission();  //Ted permission으로 권한 얻어오기
         makeDir();
 
-        // Amazon Cognito 인증 공급자를 초기화합니다
-        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
-                getApplicationContext(),
-                "ap-northeast-2:ec6efe79-ddb8-4400-b58b-28386eb57c3e", // 자격 증명 풀 ID
-                Regions.AP_NORTHEAST_2 // 리전
-        );
-        s3 = new AmazonS3Client(credentialsProvider);
-        // S3 버킷의 Region 이 서울일 경우 아래와 같습니다.
-        s3.setRegion(Region.getRegion(Regions.AP_NORTHEAST_2));
-        s3.setEndpoint("s3.ap-northeast-2.amazonaws.com");
-        transferUtility = new TransferUtility(s3, getApplicationContext());
 
 
         btn_record = findViewById(R.id.btn_record);
@@ -154,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             camera.lock();
             recording  = false;
 
-            Toast.makeText(MainActivity.this, "aws에 업로드중 기다려주세요", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "firebase에 업로드중 기다려주세요", Toast.LENGTH_SHORT).show();
 
             btn_upload.callOnClick();
             btn_send.callOnClick();
@@ -249,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                     camera.lock();
                     recording  = false;
 
-                    Toast.makeText(MainActivity.this, "aws에 업로드중 기다려주세요", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "firebase에 업로드중 기다려주세요", Toast.LENGTH_SHORT).show();
 
                     btn_upload.callOnClick();
                     btn_send.callOnClick();
@@ -304,30 +273,32 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 break;
             case R.id.btn_upload:
                 if(filename != null) {
+
                     Log.e("파일명 확인: ", filename);
 
-                    f = new File(dirPath +"/"+ filename);
-                    TransferObserver observer = transferUtility.upload("blackbox-aws", f.getName(), f);
+                    FirebaseStorage storage = FirebaseStorage.getInstance();
 
-                    Toast.makeText(MainActivity.this, "aws로 전송", Toast.LENGTH_SHORT).show();
+                    Uri file = Uri.fromFile(new File(dirPath +"/"+ filename));
+                    StorageReference storageRef = storage.getReferenceFromUrl("gs://videorecording-e653f.appspot.com/").child(dirPath +"/"+ filename);
+                    //storage url 적는란
 
-                    observer.setTransferListener(new TransferListener() {
-                        @Override
-                        public void onStateChanged(int id, TransferState state) {
-                            Log.e(TAG, "onStateChanged: " + id + ", " + state.toString());
-                        }
 
-                        @Override
-                        public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-                            float percentDonef = ((float) bytesCurrent / (float) bytesTotal) * 100;
-                            int percentDone = (int)percentDonef;
-                            Log.e(TAG, "ID:" + id + " bytesCurrent: " + bytesCurrent + " bytesTotal: " + bytesTotal + " " + percentDone + "%");
-                        }
-                        @Override
-                        public void onError(int id, Exception ex) {
-                            Log.e(TAG, ex.getMessage());
-                        }
-                    });
+                    Log.e("URi 확인: ", String.valueOf(file));
+                    storageRef.putFile(file)
+                            .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                @Override
+                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                    Toast.makeText(MainActivity.this, "업로드 성공", Toast.LENGTH_SHORT).show();
+                                    filename = null;
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(MainActivity.this, "업로드 실패", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
                 }
                 else{
                     Toast.makeText(MainActivity.this, "파일 없음", Toast.LENGTH_SHORT).show();
@@ -480,6 +451,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 //
 //        }
     }
+
+
+
+
 
 
 
