@@ -3,8 +3,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.hardware.Camera;
 import android.location.Address;
 import android.location.Geocoder;
@@ -14,6 +16,7 @@ import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -22,10 +25,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.widget.VideoView;
+
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.gun0912.tedpermission.PermissionListener;
@@ -42,7 +48,7 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback, View.OnClickListener {
 
 
-    private AmazonS3 s3;
+    private Button btn_gallery;
     private Camera camera;
     private MediaRecorder mediaRecorder;
     private Button btn_record, btn_upload;
@@ -55,10 +61,12 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private Button btn_send;
     private EditText textPhoneNo;
     private String phoneNum = null;
+    private  ProgressDialog progressDialog;
 
     private GpsTracker gpsTracker;
 
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
+    private static final int VIDEO_REQUEST_CODE = 1000;
 
 
     @Override
@@ -73,15 +81,21 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         makeDir();
 
 
-
+        btn_gallery = findViewById(R.id.btn_gallery);
         btn_record = findViewById(R.id.btn_record);
         btn_upload = findViewById(R.id.btn_upload);
         btn_send = findViewById(R.id.btn_send);
+        btn_gallery.setOnClickListener(this);
         btn_record.setOnClickListener(this);
         btn_upload.setOnClickListener(this);
         btn_send.setOnClickListener(this);
         textPhoneNo = findViewById(R.id.edit_text_phone);
 
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Please waiting...");
+        progressDialog.setCancelable(false);
+        progressDialog.setProgressStyle(android.R.style.Widget_ProgressBar_Horizontal);
 
 
     }
@@ -90,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         String str = Environment.getExternalStorageState();
         if ( str.equals(Environment.MEDIA_MOUNTED)) {
 
-            dirPath = "/sdcard/black_box";
+            dirPath = "/sdcard/DCIM/BlackBox";
             File file = new File(dirPath);
             if( !file.exists() )  // 원하는 경로에 폴더가 있는지 확인
             {
@@ -108,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
         TedPermission.with(this)
                 .setPermissionListener(permission)
-                .setRationaleMessage("녹화를 위하여 권한을 허용해주세요.")
+                .setRationaleMessage("필요한 권한을 허용해주세요.")
                 .setDeniedMessage("권한이 거부되었습니다.")
                 .setPermissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO, Manifest.permission.SEND_SMS, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION )
                 .check();
@@ -259,6 +273,17 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                                 recording = true;
 
 
+
+
+                                MediaScanner ms = MediaScanner.newInstance(MainActivity.this);
+                                try {  ms.mediaScanning(dirPath + "/" + filename); }
+                                catch (Exception e) { e.printStackTrace(); Log.d("MediaScan", "ERROR" + e); }
+                                finally { }
+//                                galleryAddPic();
+
+
+
+
                             }catch (Exception e){
                                 e.printStackTrace();
                                 mediaRecorder.release();
@@ -269,6 +294,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                         }
                     });
                 }
+
 
                 break;
             case R.id.btn_upload:
@@ -285,6 +311,16 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
                     Log.e("URi 확인: ", String.valueOf(file));
                     storageRef.putFile(file)
+                            .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                                @Override
+                                public void onProgress(@NonNull UploadTask.TaskSnapshot taskSnapshot) {
+                                    double progress = (100.0 * taskSnapshot.getBytesTransferred());
+                                progressDialog.show();
+                                if(progress >= 100)
+                                progressDialog.dismiss();
+                                }
+                            })
+
                             .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                 @Override
                                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -298,6 +334,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                                     Toast.makeText(MainActivity.this, "업로드 실패", Toast.LENGTH_SHORT).show();
                                 }
                             });
+
 
                 }
                 else{
@@ -317,9 +354,20 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                     Toast.makeText(this, "문자 메시지 전송", Toast.LENGTH_SHORT).show();
 
                 break;
+            case R.id.btn_gallery:
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                intent.setType("video/*");
+                startActivityForResult(intent, VIDEO_REQUEST_CODE);
+
+                break;
         }
 
   }
+
+
+
+
 
     private void sendSms(String phoneNum, String msg) {
         SmsManager sms = SmsManager.getDefault();
@@ -393,8 +441,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
 
         switch (requestCode) {
 
@@ -410,10 +458,18 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 }
 
                 break;
+            case VIDEO_REQUEST_CODE:
+                Uri uri = intent.getData();
+                Intent video_intent = new Intent(getApplicationContext(), VideoActivity.class);
+                video_intent.putExtra("videoUri", uri);
+                startActivity(video_intent);
+
+                break;
         }
     }
 
-    public boolean checkLocationServicesStatus() {
+
+     public boolean checkLocationServicesStatus() {
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
