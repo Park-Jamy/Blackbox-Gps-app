@@ -1,28 +1,25 @@
 package org.techtown.blackbox;
 
-import android.service.autofill.UserData;
-
 import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.toolbox.StringRequest;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class LoginRequest extends StringRequest {
+public class GpsIdRequest extends StringRequest {
 
     // 서버 URL 설정 ( PHP 파일 연동 )
-    final static private String URL = "http://34.64.132.117/Login.php";
+    final static private String URL = "http://34.64.132.117/GpsId.php";
     private Map<String, String> map;
 
 
-    public LoginRequest(String UserId, String UserPwd, Response.Listener<String> listener) {
-        super(Method.POST, URL, listener, null);
+    public GpsIdRequest(String UserId, Response.Listener<String> listener) {
+        super(Request.Method.POST, URL, listener, null);
 
         map = new HashMap<>();
         map.put("UserId",UserId);
-        map.put("UserPwd", UserPwd);
-
     }
 
     @Override

@@ -252,8 +252,13 @@ public class RegisterActivity extends AppCompatActivity {
 
                 //서버로 Volley를 이용해서 요청
                 RegisterRequest registerRequest = new RegisterRequest(UserDate ,UserId, UserPwd, UserName, UserPhone, UserPName, UserPPhone, responseListener);
+                GpsIdRequest gpsidRequest = new GpsIdRequest(UserId, responseListener);
                 RequestQueue queue = Volley.newRequestQueue( RegisterActivity.this );
                 queue.add( registerRequest );
+                queue.add( gpsidRequest );
+
+//                RequestQueue queue1 = Volley.newRequestQueue( RegisterActivity.this );
+//                queue1.add( gpsidRequest );
             }
         });
 

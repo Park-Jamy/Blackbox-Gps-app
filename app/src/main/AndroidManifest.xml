@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="org.techtown.blackbox">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -14,6 +15,7 @@
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
 
     <application
         android:name=".App"
@@ -41,6 +43,8 @@
         <activity android:name=".RegisterActivity"></activity>
         <activity android:name=".VideoActivity"></activity>
         <activity android:name=".CertiActivity"/>
+
+
     </application>
 
 </manifest>
