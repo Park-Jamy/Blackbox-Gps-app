@@ -6,16 +6,30 @@
     android:layout_height="match_parent"
     tools:context=".VideoActivity"
     android:orientation="vertical"
-    android:gravity="center"
+
     android:background="@color/black"
     >
-    <VideoView
+   <Gallery android:layout_height="match_parent"
+       android:layout_width="match_parent"
+        android:id="@+id/gallery1"
+       android:spacing="10dp"
+       android:unselectedAlpha="0.2"
+       android:layout_weight="6"
+       >
 
+   </Gallery>
+
+
+
+
+    <VideoView
+        android:layout_margin="10dp"
+        android:layout_weight="3"
         android:layout_gravity="center"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:id="@+id/videoVideo"
-
+        android:visibility="visible"
         />
 
 

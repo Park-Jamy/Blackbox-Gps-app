@@ -34,8 +34,7 @@ public class RegisterActivity extends AppCompatActivity {
     private boolean validate = false;
     long now = System.currentTimeMillis();
 
-
-    String strAgeRange;
+    String strAgeRange, strName, strPName, nameNum;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) { // 액티비티 시작시 처음으로 실행되는 생명주기!
@@ -54,6 +53,17 @@ public class RegisterActivity extends AppCompatActivity {
         //데이터 받기
         Intent intent = getIntent();
         strAgeRange = intent.getStringExtra("ageRange");
+//        strName = intent.getStringExtra("Name");
+//        nameNum = intent.getStringExtra("btn_num");
+//        Log.d("ste", strName);
+//        if (nameNum.equals("1")){
+//            join_pname.setText(strName);
+//            //join_pname.setEnabled(false);
+//        }
+//        else{
+//            join_name.setText(strName);
+//           // join_name.setEnabled(false);
+//        }
 
         if (strAgeRange.equals("0~9") && strAgeRange.equals("10~19")) {
             UserManagement.getInstance().requestUnlink(new UnLinkResponseCallback() {
@@ -123,7 +133,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                 @Override
                 public void onSuccess(Long result) {
-                    Toast.makeText(getApplicationContext(), "20살 미만 본인인증을 했습니다.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "본인인증이 완료되었습니다.", Toast.LENGTH_SHORT).show();
 
                 }
             });
@@ -180,7 +190,7 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
         //회원가입 버튼 클릭 시 수행
-        join_button = findViewById( R.id.join_button );
+        join_button = findViewById( R.id.join_button);
         join_button.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -208,9 +218,17 @@ public class RegisterActivity extends AppCompatActivity {
                 }
 
                 //한 칸이라도 입력 안했을 경우
-                if (UserId.equals("") || UserPwd.equals("") || UserName.equals("")) {
+                if (UserId.equals("") || UserPwd.equals("") || UserName.equals("") || UserPhone.equals("")|| UserPName.equals("")|| UserPPhone.equals("")) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(RegisterActivity.this);
                     dialog = builder.setMessage("모두 입력해주세요.").setNegativeButton("확인", null).create();
+                    dialog.show();
+                    return;
+                }
+
+                //패스워드 8자리 미만일 때 다시 하게 하기
+                if (UserPwd.length() < 8) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(RegisterActivity.this);
+                    dialog = builder.setMessage("비밀번호를 8자리 이상 입력해 주세요").setNegativeButton("확인", null).create();
                     dialog.show();
                     return;
                 }
@@ -257,8 +275,6 @@ public class RegisterActivity extends AppCompatActivity {
                 queue.add( registerRequest );
                 queue.add( gpsidRequest );
 
-//                RequestQueue queue1 = Volley.newRequestQueue( RegisterActivity.this );
-//                queue1.add( gpsidRequest );
             }
         });
 

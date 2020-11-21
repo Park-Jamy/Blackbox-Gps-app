@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">BlackBox</string>
     <string name="kakao_app_key">8417db03310963c9df90fef0af35f101</string>
+    <string name="register">REGISTER</string>
+    <string name="login_email_hint">Email</string>
+    <string name="login_password_hint">Password</string>
+    <string name="signup_login_hint">Already have an account? Sign In</string>
+    <string name="login_signup_hint">Don\'t have an account? Sign Up</string>
 </resources>
