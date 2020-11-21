@@ -1,5 +1,6 @@
 package org.techtown.blackbox;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.pm.PackageInfo;
@@ -38,6 +39,7 @@ import java.util.Date;
 public class LoginActivity extends AppCompatActivity {
     private EditText et_id, et_pass;
     private Button btn_login, btn_register;
+    private AlertDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,7 +99,9 @@ public class LoginActivity extends AppCompatActivity {
 
                                 startActivity(intent);
                             } else { // 로그인에 실패한 경우
-                                Toast.makeText(getApplicationContext(),"로그인에 실패하였습니다.",Toast.LENGTH_SHORT).show();
+                                AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+                                dialog = builder.setMessage("아이디와 비밀번호를 확인하세요").setPositiveButton("확인", null).create();
+                                dialog.show();
                                 return;
                             }
                         } catch (JSONException e) {

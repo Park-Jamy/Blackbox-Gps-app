@@ -19,6 +19,7 @@
         <TextView
             style="@style/headerTextPrimary"
             android:layout_marginTop="@dimen/loginViewsMargin"
+            android:fontFamily="monospace"
             android:text="Certification" />
 
         <ScrollView
@@ -37,6 +38,7 @@
                     android:id="@+id/textView3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:fontFamily="@font/nanumsquareroundr"
                     android:text="행자부가 금번에 발표한 가이드라인을 통해 제시한 공공기관 및 기업 등이 준수하여야 할 원칙과 구체적인 조치요령은 다음과 같다.   먼저, 정보주체의 동의를 받았거나 법령에 따른 수집 또는 계약 체결·이행을 위해 불가피한 경우 등에도 수집 목적에 비추어 반드시 필요한 최소한의 개인정보만을 수집·이용하여야 한다.   또한, 쿠키 등을 통해 웹사이트 이용에 꼭 필요한 정보를 수집하는 경우에는 그 목적, 항목 및 보유기간 등을 공개하여야 하며, 마케팅 등을 위해 웹사이트 이용과 직접 관련없는 정보를 수집하는 경우에는 동의를 받아야 한다.   개인정보의 제3자 제공도 꼭 필요한 범위에서 최소한으로 하여야 하며, 제3자 제공 동의를 받는 경우에는 개인정보를 제공받는 자, 제공받는 자의 이용 목적, 제공하는 개인정보 항목 등 중요한 사항은 부호·색채 및 굵고 큰 글자 등으로 명확히 표시하여야 한다.  동의를 받아 개인정보를 수집·이용할 때에는 ⅰ) 동의의 내용과 ⅱ) 동의를 거부할 권리가 있다는 사실 ⅲ) 동의 거부에 따른 불이익이 있는 경우 그 내용을 구체적으로 알리는 등 정보주체의 동의권을 실질적으로 보장하여야 한다.   정보주체가 동의여부를 선택할 수 있는 경우에는 선택 사항임을 명시하고, 동의 거부를 이유로 다른 서비스 이용을 제한하거나 온라인에서 다음 화면으로 넘어가지 못하게 해서는 안된다.   온라인에서 개인정보 수집 동의서를 작성하는 경우, ‘동의함’체크 박스가 기본값(default)으로 설정되어 있지 않도록 하여야 한다.   ‘홍보 및 마케팅’을 목적으로 개인정보를 수집하면서, ‘부가서비스 제공’, ‘제휴서비스 제공’ 등으로 목적을 기재하여서는 안된다.  주민등록번호는 법령상 구체적 근거에 따라 수집하여야 하고, 그 외의 고유식별정보나 민감정보도 법령상 근거없이 주관적 필요에 따라 수집하는 것을 지양하여" />
             </LinearLayout>
         </ScrollView>
@@ -47,8 +49,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="20dp"
+            android:fontFamily="@font/nanumsquareroundr"
             android:foregroundGravity="center"
-            android:text="Information Agreement" />
+            android:text="개인 정보 동의" />
 
         <LinearLayout
             android:layout_width="match_parent"

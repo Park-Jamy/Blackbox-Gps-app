@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
     style="@style/loginParent"
+    android:layout_marginBottom="10dp"
+    android:orientation="vertical"
     tools:context=".HomeActivity">
-    <ScrollView
-        style="@style/parent">
+
+    <ScrollView style="@style/parent">
 
         <RelativeLayout style="@style/parent">
 
@@ -21,14 +21,14 @@
                 <LinearLayout
                     style="@style/parent"
                     android:layout_weight="3"
-                    android:background="@drawable/login_shape_bk"
+                    android:background="@drawable/home_shape_bk"
                     android:backgroundTint="#FFE57F"
                     android:orientation="vertical">
 
                     <ImageView
                         style="@style/parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="300sp"
+                        android:layout_marginTop="150sp"
                         android:background="@drawable/ic_login_bk"
                         android:contentDescription="login background" />
 
@@ -47,6 +47,13 @@
                 android:orientation="vertical">
 
 
+                <TextView
+                    style="@style/headerTextPrimaryHome"
+                    android:layout_marginTop="30sp"
+                    android:fontFamily="monospace"
+                    android:text="Sooung Sooung"
+                    android:textSize="30sp" />
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
@@ -60,6 +67,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:fontFamily="@font/nanumsquareroundr"
                         android:gravity="right"
                         android:hint="id"
                         android:textSize="14sp" />
@@ -68,81 +76,102 @@
                         android:id="@+id/textView2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumsquareroundr"
                         android:gravity="center"
                         android:text="님의 블랙박스"
                         android:textSize="14sp" />
 
                 </LinearLayout>
 
-                    <TextView
-                        style="@style/headerTextPrimaryHome"
-                        android:layout_marginTop="30sp"
-                        android:fontFamily="casual"
-                        android:text="Sooung Sooung"
-                        android:textSize="24sp" />
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="30dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingBottom="5sp">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_marginTop="30dp"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:paddingBottom="10sp">
-
-                        <Button
-                            android:id="@+id/btn_record"
-                            style="@style/HomeButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="right"
-                            android:layout_marginTop="-150dp"
-                            android:layout_marginRight="10dp"
-                            android:backgroundTint="#FFFFFF"
-                            android:shadowColor="#B1B1B1"
-                            android:shadowDx="10"
-                            android:shadowDy="10"
-                            android:text="Record"
-                            android:textColor="#FBC02D"
-                            android:textSize="14sp" />
-
-                        <Button
-                            android:id="@+id/btn_gallery"
-                            style="@style/HomeButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="right"
-                            android:layout_marginLeft="10dp"
-                            android:backgroundTint="#FFFFFF"
-                            android:shadowDx="10"
-                            android:shadowDy="10"
-                            android:text="Gallery"
-                            android:textColor="#FBC02D"
-                            android:textSize="14sp" />
-
-                    </LinearLayout>
-
-                <Button
-                    android:id="@+id/btn_end"
-                    style="@style/HomeButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="20dp"
-                    android:backgroundTint="#FFFFFF"
-                    android:shadowDx="10"
-                    android:shadowDy="10"
-                    android:text="Logout"
-                    android:textColor="#FBC02D"
-                    android:textSize="14sp" />
-
-                    <TextView
-                        android:id="@+id/textView4"
-                        android:layout_width="match_parent"
+                    <Button
+                        android:id="@+id/btn_record"
+                        style="@style/HomeButton"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="30sp" />
+                        android:layout_gravity="right"
+                        android:layout_marginRight="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:backgroundTint="#FFFEFC"
+                        android:fontFamily="monospace"
+                        android:shadowColor="#B1B1B1"
+                        android:shadowDx="10"
+                        android:shadowDy="10"
+                        android:text="Record"
+                        android:textColor="#FBC02D"
+                        android:textSize="14sp" />
 
+                    <Button
+                        android:id="@+id/btn_gallery"
+                        style="@style/HomeButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginLeft="10dp"
+                        android:backgroundTint="#FFFEFC"
+                        android:fontFamily="monospace"
+                        android:shadowDx="10"
+                        android:shadowDy="10"
+                        android:text="Gallery"
+                        android:textColor="#FBC02D"
+                        android:textSize="14sp" />
 
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingTop="5sp"
+                    android:paddingBottom="10sp">
+
+                    <Button
+                        android:id="@+id/btn_end"
+                        style="@style/HomeButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginRight="20sp"
+                        android:backgroundTint="#FFFEFC"
+                        android:fontFamily="monospace"
+                        android:shadowColor="#D3D3D3"
+                        android:shadowDx="10"
+                        android:shadowDy="10"
+                        android:text="Logout"
+                        android:textColor="#FBC02D"
+                        android:textSize="14sp" />
+
+                    <Button
+                        android:id="@+id/btn_content"
+                        style="@style/HomeButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginBottom="10sp"
+                        android:backgroundTint="#FFFEFC"
+                        android:fontFamily="monospace"
+                        android:shadowDx="10"
+                        android:shadowDy="10"
+                        android:text="content"
+                        android:textColor="#FBC02D"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/textView4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="30sp" />
 
 
             </LinearLayout>

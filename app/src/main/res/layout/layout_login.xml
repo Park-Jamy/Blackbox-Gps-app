@@ -20,6 +20,7 @@
         <TextView
             style="@style/headerTextPrimary"
             android:layout_marginTop="@dimen/loginViewsMargin"
+            android:fontFamily="monospace"
             android:text="Login" />
 
         <com.google.android.material.textfield.TextInputLayout
@@ -30,7 +31,7 @@
             <EditText
                 android:id="@+id/et_id"
                 style="@style/modifiedEditText"
-                android:hint="@string/login_email_hint"
+                android:hint="Id"
                 android:inputType="textEmailAddress"
                 android:maxLines="1" />
         </com.google.android.material.textfield.TextInputLayout>
